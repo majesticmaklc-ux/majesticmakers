@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Panel — Majestic Makers</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --navy:#0d1117; --navy-mid:#161b27; --navy-card:#1c2333; --navy-light:#212b40;
+      --gold:#c9a84c; --gold-light:#e0c88a; --white:#f8f7f4;
+      --gray:#9a9a9a; --green:#4cae7a; --red:#e05555; --blue:#5588e0;
+      --radius:8px; --transition:0.25s ease;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Outfit',sans-serif;background:var(--navy);color:var(--white);min-height:100vh;display:flex;flex-direction:column}
+    a{color:var(--gold);text-decoration:none}
+
+    /* ── Login Screen ── */
+    #login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999;flex-direction:column;gap:1.5rem}
+    .login-card{background:var(--navy-card);border:1px solid rgba(201,168,76,0.2);border-radius:16px;padding:3rem;width:100%;max-width:400px}
+    .login-logo{text-align:center;margin-bottom:2rem}
+    .login-logo h1{font-size:1.6rem;color:var(--gold-light);letter-spacing:0.1em}
+    .login-logo p{font-size:0.75rem;color:var(--gray);letter-spacing:0.2em;text-transform:uppercase;margin-top:4px}
+    .form-g{margin-bottom:1rem}
+    .form-g label{display:block;font-size:0.78rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--gray);margin-bottom:6px}
+    .form-g input{width:100%;padding:0.75rem 1rem;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);color:var(--white);font-family:inherit;font-size:0.9rem;outline:none;transition:var(--transition)}
+    .form-g input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,168,76,0.1)}
+    .btn-login{width:100%;padding:0.85rem;background:linear-gradient(135deg,var(--gold),#a07830);color:var(--navy);font-weight:700;font-size:0.9rem;border:none;border-radius:var(--radius);cursor:pointer;transition:var(--transition);letter-spacing:0.05em;margin-top:0.5rem}
+    .btn-login:hover{transform:translateY(-1px);box-shadow:0 4px 15px rgba(201,168,76,0.35)}
+    #login-err{color:var(--red);font-size:0.82rem;text-align:center;min-height:1.2em}
+
+    /* ── Layout ── */
+    #app{display:none;flex:1;flex-direction:column}
+    .topbar{background:var(--navy-mid);border-bottom:1px solid rgba(201,168,76,0.1);padding:1rem 1.5rem;display:flex;justify-content:space-between;align-items:center}
+    .topbar-logo{font-size:1.1rem;font-weight:700;color:var(--gold-light);letter-spacing:0.08em}
+    .topbar-right{display:flex;align-items:center;gap:1rem}
+    .badge{background:rgba(201,168,76,0.15);color:var(--gold);font-size:0.7rem;padding:3px 10px;border-radius:20px;border:1px solid rgba(201,168,76,0.25)}
+    .btn-sm{padding:0.4rem 1rem;font-size:0.8rem;border-radius:6px;border:none;cursor:pointer;transition:var(--transition);font-family:inherit;font-weight:500}
+    .btn-danger{background:rgba(224,85,85,0.15);color:var(--red);border:1px solid rgba(224,85,85,0.25)}
+    .btn-danger:hover{background:rgba(224,85,85,0.25)}
+
+    .main-layout{display:flex;flex:1}
+    .sidebar{width:220px;background:var(--navy-mid);border-right:1px solid rgba(201,168,76,0.08);padding:1.5rem 0;flex-shrink:0}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:0.7rem 1.5rem;font-size:0.88rem;font-weight:500;color:var(--gray);cursor:pointer;transition:var(--transition);border-left:2px solid transparent}
+    .nav-item:hover{color:var(--white);background:rgba(255,255,255,0.03)}
+    .nav-item.active{color:var(--gold-light);border-left-color:var(--gold);background:rgba(201,168,76,0.05)}
+    .nav-item .count{margin-left:auto;background:var(--gold);color:var(--navy);font-size:0.65rem;font-weight:700;padding:2px 6px;border-radius:10px;min-width:20px;text-align:center}
+    .content-area{flex:1;padding:2rem;overflow-y:auto}
+
+    /* ── Tabs ── */
+    .tab-pane{display:none}
+    .tab-pane.active{display:block}
+    .page-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:1.5rem}
+    .page-title{font-size:1.3rem;font-weight:600;color:var(--gold-light)}
+    .page-sub{font-size:0.82rem;color:var(--gray);margin-top:2px}
+
+    /* ── Stats Row ── */
+    .stats-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);border-radius:var(--radius);padding:1.4rem 1.6rem}
+    .stat-card .num{font-size:2rem;font-weight:700;color:var(--gold-light);line-height:1}
+    .stat-card .lbl{font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gray);margin-top:4px}
+
+    /* ── Table ── */
+    .table-wrap{background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);border-radius:var(--radius);overflow:hidden}
+    table{width:100%;border-collapse:collapse}
+    th{background:rgba(201,168,76,0.07);padding:0.8rem 1rem;font-size:0.72rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);text-align:left;white-space:nowrap}
+    td{padding:0.85rem 1rem;font-size:0.86rem;color:var(--gray);border-top:1px solid rgba(255,255,255,0.04);vertical-align:top}
+    tr:hover td{background:rgba(255,255,255,0.015);color:var(--white)}
+    td strong{color:var(--white)}
+    .status-badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.7rem;font-weight:600;letter-spacing:0.05em}
+    .status-new{background:rgba(224,85,85,0.15);color:var(--red);border:1px solid rgba(224,85,85,0.2)}
+    .status-read{background:rgba(85,136,224,0.15);color:var(--blue);border:1px solid rgba(85,136,224,0.2)}
+    .status-replied{background:rgba(76,174,122,0.15);color:var(--green);border:1px solid rgba(76,174,122,0.2)}
+    .msg-preview{max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .empty-state{text-align:center;padding:4rem 2rem;color:var(--gray)}
+    .empty-state .icon{font-size:3rem;margin-bottom:1rem}
+    .empty-state p{font-size:0.9rem}
+
+    /* ── Content CMS ── */
+    .cms-layout{display:grid;grid-template-columns:1fr 1.4fr;gap:1.5rem;align-items:start}
+    .cms-form{background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);border-radius:var(--radius);padding:1.5rem}
+    .cms-form h3{font-size:1rem;color:var(--gold-light);margin-bottom:1.2rem;padding-bottom:0.8rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .form-g select{width:100%;padding:0.75rem 1rem;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);color:var(--white);font-family:inherit;font-size:0.9rem;outline:none;transition:var(--transition)}
+    .form-g select:focus{border-color:var(--gold)}
+    .form-g textarea{width:100%;padding:0.75rem 1rem;background:rgba(255,255,255,0.04);border:1px solid rgba(201,168,76,0.2);border-radius:var(--radius);color:var(--white);font-family:inherit;font-size:0.9rem;outline:none;transition:var(--transition);resize:vertical;min-height:90px}
+    .form-g textarea:focus{border-color:var(--gold)}
+    .form-g select option{background:var(--navy-card)}
+    .btn-gold{background:linear-gradient(135deg,var(--gold),#a07830);color:var(--navy);font-weight:600;font-size:0.85rem;padding:0.6rem 1.4rem;border:none;border-radius:var(--radius);cursor:pointer;transition:var(--transition);font-family:inherit}
+    .btn-gold:hover{transform:translateY(-1px);box-shadow:0 4px 12px rgba(201,168,76,0.3)}
+    .btn-ghost{background:transparent;color:var(--gray);font-size:0.82rem;padding:0.5rem 1rem;border:1px solid rgba(255,255,255,0.1);border-radius:var(--radius);cursor:pointer;transition:var(--transition);font-family:inherit}
+    .btn-ghost:hover{border-color:var(--gold);color:var(--white)}
+    .btn-del{background:rgba(224,85,85,0.1);color:var(--red);font-size:0.75rem;padding:4px 10px;border:1px solid rgba(224,85,85,0.2);border-radius:6px;cursor:pointer;transition:var(--transition);font-family:inherit}
+    .btn-del:hover{background:rgba(224,85,85,0.2)}
+    .btn-edit{background:rgba(85,136,224,0.1);color:var(--blue);font-size:0.75rem;padding:4px 10px;border:1px solid rgba(85,136,224,0.2);border-radius:6px;cursor:pointer;transition:var(--transition);font-family:inherit}
+    .btn-edit:hover{background:rgba(85,136,224,0.2)}
+    .content-list{background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);border-radius:var(--radius);overflow:hidden}
+    .content-item{padding:1rem 1.2rem;border-bottom:1px solid rgba(255,255,255,0.04);display:flex;justify-content:space-between;align-items:center;gap:1rem}
+    .content-item:last-child{border-bottom:none}
+    .content-item-info{}
+    .content-item-section{font-size:0.65rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--gold);margin-bottom:3px}
+    .content-item-title{font-size:0.9rem;color:var(--white);font-weight:500}
+    .content-item-actions{display:flex;gap:6px;flex-shrink:0}
+
+    /* ── Toast ── */
+    .toast{position:fixed;bottom:2rem;right:2rem;background:var(--navy-card);border-radius:var(--radius);padding:0.9rem 1.3rem;display:flex;align-items:center;gap:10px;min-width:260px;box-shadow:0 4px 24px rgba(0,0,0,0.4);border-left:4px solid var(--gold);transform:translateX(120%);transition:transform 0.4s ease;z-index:9998;font-size:0.88rem}
+    .toast.success{border-color:var(--green)}
+    .toast.error{border-color:var(--red)}
+    .toast.show{transform:translateX(0)}
+
+    /* Spinner */
+    .spinner{width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite;display:inline-block;vertical-align:middle}
+    @keyframes spin{to{transform:rotate(360deg)}}
+
+    @media(max-width:700px){
+      .cms-layout,.main-layout{flex-direction:column}
+      .sidebar{width:100%;display:flex;overflow-x:auto;padding:0}
+      .nav-item{flex-shrink:0}
+      .stats-row{grid-template-columns:1fr 1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <h1>✦ Majestic Makers</h1>
+      <p>Admin Panel</p>
+    </div>
+    <div class="form-g">
+      <label for="l-user">Username</label>
+      <input type="text" id="l-user" placeholder="admin" autocomplete="username" />
+    </div>
+    <div class="form-g">
+      <label for="l-pass">Password</label>
+      <input type="password" id="l-pass" placeholder="••••••••" autocomplete="current-password" />
+    </div>
+    <div id="login-err"></div>
+    <button class="btn-login" id="btn-login">Sign In</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none;flex:1;flex-direction:column">
+  <div class="topbar">
+    <span class="topbar-logo">✦ Majestic Makers</span>
+    <div class="topbar-right">
+      <span class="badge">Admin</span>
+      <a href="/" class="btn-sm" style="background:rgba(201,168,76,0.1);color:var(--gold);border:1px solid rgba(201,168,76,0.2)">← Live Site</a>
+      <button class="btn-sm btn-danger" id="btn-logout">Logout</button>
+    </div>
+  </div>
+  <div class="main-layout">
+    <div class="sidebar">
+      <div class="nav-item active" data-tab="dashboard">📊 Dashboard</div>
+      <div class="nav-item" data-tab="enquiries">✉ Enquiries <span class="count" id="enq-count">0</span></div>
+      <div class="nav-item" data-tab="registrations">👥 Registrations</div>
+      <div class="nav-item" data-tab="content">📝 Content CMS</div>
+    </div>
+    <div class="content-area">
+
+      <!-- DASHBOARD -->
+      <div class="tab-pane active" id="tab-dashboard">
+        <div class="page-header">
+          <div>
+            <div class="page-title">Dashboard</div>
+            <div class="page-sub">Welcome back, Administrator</div>
+          </div>
+        </div>
+        <div class="stats-row" id="stats-row">
+          <div class="stat-card"><div class="num" id="stat-enq">—</div><div class="lbl">Total Enquiries</div></div>
+          <div class="stat-card"><div class="num" id="stat-new">—</div><div class="lbl">New / Unread</div></div>
+          <div class="stat-card"><div class="num" id="stat-reg">—</div><div class="lbl">Registrations</div></div>
+          <div class="stat-card"><div class="num" id="stat-cnt">—</div><div class="lbl">Content Blocks</div></div>
+        </div>
+        <div style="background:var(--navy-card);border:1px solid rgba(201,168,76,0.1);border-radius:var(--radius);padding:1.5rem">
+          <h3 style="font-size:0.95rem;color:var(--gold-light);margin-bottom:1rem">Recent Enquiries</h3>
+          <div id="recent-enq"></div>
+        </div>
+      </div>
+
+      <!-- ENQUIRIES -->
+      <div class="tab-pane" id="tab-enquiries">
+        <div class="page-header">
+          <div><div class="page-title">Enquiries</div><div class="page-sub">All customer enquiries</div></div>
+          <button class="btn-gold" id="refresh-enq">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>Company</th><th>Service</th><th>Message</th><th>Date</th><th>Status</th><th>Action</th>
+            </tr></thead>
+            <tbody id="enq-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- REGISTRATIONS -->
+      <div class="tab-pane" id="tab-registrations">
+        <div class="page-header">
+          <div><div class="page-title">Registrations</div><div class="page-sub">All registered users</div></div>
+          <button class="btn-gold" id="refresh-reg">↻ Refresh</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>Name</th><th>Email</th><th>Phone</th><th>Company</th><th>Designation</th><th>Interests</th><th>Newsletter</th><th>Joined</th>
+            </tr></thead>
+            <tbody id="reg-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- CONTENT CMS -->
+      <div class="tab-pane" id="tab-content">
+        <div class="page-header">
+          <div><div class="page-title">Content CMS</div><div class="page-sub">Manage homepage content blocks</div></div>
+        </div>
+        <div class="cms-layout">
+          <div class="cms-form">
+            <h3 id="cms-form-title">➕ Add New Block</h3>
+            <input type="hidden" id="cms-id" />
+            <div class="form-g">
+              <label>Section *</label>
+              <select id="cms-section">
+                <option value="announcement">📢 Announcement</option>
+                <option value="highlight">⭐ Highlight</option>
+                <option value="update">🔔 Update</option>
+                <option value="insight">💡 Insight</option>
+                <option value="event">📅 Event</option>
+                <option value="offer">🎁 Offer</option>
+              </select>
+            </div>
+            <div class="form-g">
+              <label>Icon (emoji)</label>
+              <input type="text" id="cms-icon" placeholder="e.g. 🚀" maxlength="4" />
+            </div>
+            <div class="form-g">
+              <label>Title</label>
+              <input type="text" id="cms-title" placeholder="Block heading" />
+            </div>
+            <div class="form-g">
+              <label>Subtitle</label>
+              <input type="text" id="cms-subtitle" placeholder="Short subtitle" />
+            </div>
+            <div class="form-g">
+              <label>Body</label>
+              <textarea id="cms-body" placeholder="Main content text…"></textarea>
+            </div>
+            <div class="form-g">
+              <label>Display Order</label>
+              <input type="number" id="cms-order" placeholder="0" min="0" />
+            </div>
+            <div style="display:flex;gap:0.6rem;margin-top:0.5rem">
+              <button class="btn-gold" id="cms-save">Save Block</button>
+              <button class="btn-ghost" id="cms-reset">Reset</button>
+            </div>
+            <div id="cms-msg" style="margin-top:0.8rem;font-size:0.82rem;min-height:1em"></div>
+          </div>
+          <div>
+            <h3 style="font-size:0.9rem;color:var(--gray);letter-spacing:0.05em;margin-bottom:0.8rem">PUBLISHED BLOCKS</h3>
+            <div class="content-list" id="content-list">
+              <div class="empty-state"><div class="icon">📭</div><p>No content blocks yet.</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="admin-toast">
+  <span id="toast-icon"></span>
+  <span id="toast-msg"></span>
+</div>
+
+<script>
+  let ADMIN_TOKEN = '';
+  let allEnquiries = [], allRegs = [], allContent = [];
+
+  // ── Toast ──────────────────────────────────────────────────────
+  function toast(msg, type='success') {
+    const t = document.getElementById('admin-toast');
+    t.className = `toast ${type}`;
+    document.getElementById('toast-icon').textContent = type === 'success' ? '✅' : '❌';
+    document.getElementById('toast-msg').textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 4500);
+  }
+
+  // ── API helper ─────────────────────────────────────────────────
+  async function api(path, method='GET', body=null) {
+    const opts = { method, headers: { 'Content-Type':'application/json', 'x-admin-token': ADMIN_TOKEN } };
+    if (body) opts.body = JSON.stringify(body);
+    const res = await fetch('/api' + path, opts);
+    return res.json();
+  }
+
+  // ── LOGIN ──────────────────────────────────────────────────────
+  document.getElementById('btn-login').addEventListener('click', async () => {
+    const user = document.getElementById('l-user').value.trim();
+    const pass = document.getElementById('l-pass').value;
+    const errEl = document.getElementById('login-err');
+    errEl.textContent = '';
+    if (!user || !pass) { errEl.textContent = 'Please enter credentials.'; return; }
+    // Test credentials against admin route
+    ADMIN_TOKEN = pass;
+    const res = await api('/admin/enquiries');
+    if (res.success) {
+      document.getElementById('login-screen').style.display = 'none';
+      const app = document.getElementById('app');
+      app.style.display = 'flex';
+      loadDashboard();
+    } else {
+      errEl.textContent = 'Invalid credentials.';
+      ADMIN_TOKEN = '';
+    }
+  });
+  document.getElementById('l-pass').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('btn-login').click(); });
+
+  document.getElementById('btn-logout').addEventListener('click', () => {
+    ADMIN_TOKEN = '';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('login-screen').style.display = 'flex';
+  });
+
+  // ── TAB NAVIGATION ─────────────────────────────────────────────
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      item.classList.add('active');
+      document.getElementById('tab-' + item.dataset.tab).classList.add('active');
+      if (item.dataset.tab === 'enquiries') loadEnquiries();
+      if (item.dataset.tab === 'registrations') loadRegistrations();
+      if (item.dataset.tab === 'content') loadContent();
+    });
+  });
+
+  // ── DASHBOARD ─────────────────────────────────────────────────
+  async function loadDashboard() {
+    const [enqRes, regRes, cntRes] = await Promise.allSettled([
+      api('/admin/enquiries'), api('/admin/registrations'), api('/content')
+    ]);
+    const enqs = enqRes.status === 'fulfilled' && enqRes.value.success ? enqRes.value.data : [];
+    const regs = regRes.status === 'fulfilled' && regRes.value.success ? regRes.value.data : [];
+    const cnt  = cntRes.status  === 'fulfilled' && cntRes.value.success  ? cntRes.value.data  : [];
+    allEnquiries = enqs; allRegs = regs; allContent = cnt;
+
+    const newCount = enqs.filter(e => e.status === 'new').length;
+    document.getElementById('stat-enq').textContent = enqs.length;
+    document.getElementById('stat-new').textContent = newCount;
+    document.getElementById('stat-reg').textContent = regs.length;
+    document.getElementById('stat-cnt').textContent = cnt.length;
+    document.getElementById('enq-count').textContent = newCount;
+
+    const recent = enqs.slice(0, 5);
+    const el = document.getElementById('recent-enq');
+    if (!recent.length) { el.innerHTML = '<p style="color:var(--gray);font-size:0.85rem">No enquiries yet.</p>'; return; }
+    el.innerHTML = `<table style="width:100%;border-collapse:collapse">
+      <thead><tr>
+        <th style="padding:0.5rem 0.8rem;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);text-align:left">Name</th>
+        <th style="padding:0.5rem 0.8rem;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);text-align:left">Email</th>
+        <th style="padding:0.5rem 0.8rem;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);text-align:left">Status</th>
+        <th style="padding:0.5rem 0.8rem;font-size:0.7rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold);text-align:left">Date</th>
+      </tr></thead>
+      <tbody>${recent.map(e => `<tr>
+        <td style="padding:0.6rem 0.8rem;color:var(--white);font-size:0.85rem;border-top:1px solid rgba(255,255,255,0.04)">${e.name}</td>
+        <td style="padding:0.6rem 0.8rem;color:var(--gray);font-size:0.82rem;border-top:1px solid rgba(255,255,255,0.04)">${e.email}</td>
+        <td style="padding:0.6rem 0.8rem;border-top:1px solid rgba(255,255,255,0.04)"><span class="status-badge status-${e.status}">${e.status}</span></td>
+        <td style="padding:0.6rem 0.8rem;color:var(--gray);font-size:0.82rem;border-top:1px solid rgba(255,255,255,0.04)">${fmtDate(e.createdAt)}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  }
+
+  // ── ENQUIRIES ─────────────────────────────────────────────────
+  async function loadEnquiries() {
+    const res = await api('/admin/enquiries');
+    if (!res.success) { toast('Failed to load enquiries', 'error'); return; }
+    allEnquiries = res.data;
+    const tbody = document.getElementById('enq-tbody');
+    if (!res.data.length) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">📭</div><p>No enquiries yet.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = res.data.map(e => `
+      <tr>
+        <td><strong>${esc(e.name)}</strong></td>
+        <td><a href="mailto:${esc(e.email)}">${esc(e.email)}</a></td>
+        <td>${esc(e.company||'—')}</td>
+        <td>${esc(e.service||'—')}</td>
+        <td><div class="msg-preview" title="${esc(e.message)}">${esc(e.message)}</div></td>
+        <td style="white-space:nowrap">${fmtDate(e.createdAt)}</td>
+        <td><span class="status-badge status-${e.status}">${e.status}</span></td>
+        <td>
+          <select onchange="updateStatus('${e._id}',this.value)" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:4px;color:var(--white);padding:3px 6px;font-size:0.75rem;cursor:pointer">
+            <option value="new"    ${e.status==='new'    ?'selected':''}>New</option>
+            <option value="read"   ${e.status==='read'   ?'selected':''}>Read</option>
+            <option value="replied"${e.status==='replied'?'selected':''}>Replied</option>
+          </select>
+        </td>
+      </tr>`).join('');
+  }
+
+  async function updateStatus(id, status) {
+    const res = await api(`/admin/enquiries/${id}`, 'PATCH', { status });
+    if (res.success) toast(`Status updated to "${status}"`, 'success');
+    else toast('Update failed', 'error');
+    loadDashboard();
+  }
+
+  document.getElementById('refresh-enq').addEventListener('click', loadEnquiries);
+
+  // ── REGISTRATIONS ──────────────────────────────────────────────
+  async function loadRegistrations() {
+    const res = await api('/admin/registrations');
+    if (!res.success) { toast('Failed to load registrations', 'error'); return; }
+    const tbody = document.getElementById('reg-tbody');
+    if (!res.data.length) {
+      tbody.innerHTML = `<tr><td colspan="8"><div class="empty-state"><div class="icon">👥</div><p>No registrations yet.</p></div></td></tr>`;
+      return;
+    }
+    tbody.innerHTML = res.data.map(r => `
+      <tr>
+        <td><strong>${esc(r.name)}</strong></td>
+        <td><a href="mailto:${esc(r.email)}">${esc(r.email)}</a></td>
+        <td>${esc(r.phone||'—')}</td>
+        <td>${esc(r.company||'—')}</td>
+        <td>${esc(r.designation||'—')}</td>
+        <td style="max-width:150px">${(r.interests||[]).map(i=>`<span style="font-size:0.7rem;background:rgba(201,168,76,0.1);border:1px solid rgba(201,168,76,0.2);color:var(--gold);padding:2px 6px;border-radius:10px;display:inline-block;margin:2px">${esc(i)}</span>`).join(' ')}</td>
+        <td>${r.newsletter ? '✅' : '—'}</td>
+        <td style="white-space:nowrap">${fmtDate(r.createdAt)}</td>
+      </tr>`).join('');
+  }
+
+  document.getElementById('refresh-reg').addEventListener('click', loadRegistrations);
+
+  // ── CONTENT CMS ────────────────────────────────────────────────
+  async function loadContent() {
+    const res = await api('/content');
+    allContent = res.success ? res.data : [];
+    renderContentList();
+  }
+
+  function renderContentList() {
+    const el = document.getElementById('content-list');
+    if (!allContent.length) {
+      el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><p>No content blocks yet.</p></div>';
+      return;
+    }
+    el.innerHTML = allContent.map(c => `
+      <div class="content-item">
+        <div class="content-item-info">
+          <div class="content-item-section">${c.section}</div>
+          <div class="content-item-title">${esc(c.title || c.subtitle || c.body?.substring(0,50) || '(no title)')}</div>
+        </div>
+        <div class="content-item-actions">
+          <button class="btn-edit" onclick="editContent(${JSON.stringify(c).replace(/"/g,'&quot;')})">Edit</button>
+          <button class="btn-del" onclick="deleteContent('${c._id}')">Del</button>
+        </div>
+      </div>`).join('');
+  }
+
+  function editContent(c) {
+    document.getElementById('cms-id').value = c._id;
+    document.getElementById('cms-section').value = c.section;
+    document.getElementById('cms-icon').value = c.icon || '';
+    document.getElementById('cms-title').value = c.title || '';
+    document.getElementById('cms-subtitle').value = c.subtitle || '';
+    document.getElementById('cms-body').value = c.body || '';
+    document.getElementById('cms-order').value = c.order || 0;
+    document.getElementById('cms-form-title').textContent = '✏️ Edit Block';
+    document.getElementById('cms-msg').textContent = '';
+  }
+
+  document.getElementById('cms-reset').addEventListener('click', () => {
+    document.getElementById('cms-id').value = '';
+    document.getElementById('cms-title').value = '';
+    document.getElementById('cms-subtitle').value = '';
+    document.getElementById('cms-body').value = '';
+    document.getElementById('cms-icon').value = '';
+    document.getElementById('cms-order').value = '';
+    document.getElementById('cms-form-title').textContent = '➕ Add New Block';
+    document.getElementById('cms-msg').textContent = '';
+  });
+
+  document.getElementById('cms-save').addEventListener('click', async () => {
+    const payload = {
+      section:  document.getElementById('cms-section').value,
+      icon:     document.getElementById('cms-icon').value,
+      title:    document.getElementById('cms-title').value,
+      subtitle: document.getElementById('cms-subtitle').value,
+      body:     document.getElementById('cms-body').value,
+      order:    parseInt(document.getElementById('cms-order').value) || 0,
+    };
+    const id = document.getElementById('cms-id').value;
+    if (id) payload._id = id;
+
+    const res = await api('/admin/content', 'POST', payload);
+    const msgEl = document.getElementById('cms-msg');
+    if (res.success) {
+      msgEl.style.color = 'var(--green)';
+      msgEl.textContent = id ? '✅ Block updated!' : '✅ Block created!';
+      toast(id ? 'Content updated' : 'Content published', 'success');
+      document.getElementById('cms-reset').click();
+      loadContent();
+    } else {
+      msgEl.style.color = 'var(--red)';
+      msgEl.textContent = res.message || 'Save failed.';
+    }
+  });
+
+  async function deleteContent(id) {
+    if (!confirm('Delete this content block?')) return;
+    const res = await api(`/admin/content/${id}`, 'DELETE');
+    if (res.success) { toast('Deleted', 'success'); loadContent(); }
+    else toast('Delete failed', 'error');
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────
+  function esc(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+  function fmtDate(d) {
+    if (!d) return '—';
+    return new Date(d).toLocaleDateString('en-IN', { day:'2-digit', month:'short', year:'numeric' });
+  }
+</script>
+</body>
+</html>
